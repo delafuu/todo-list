@@ -219,3 +219,48 @@ li[data-done="true"] .btn-marcar {
         padding: 10px 14px;
     }
 }
+
+/* --- MODO OSCURO AUTOMÁTICO --- */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212; /* Fondo de la pantalla casi negro */
+        color: #ffffff; 
+    }
+    
+    .container {
+        background-color: #1e1e1e; /* Caja principal gris oscura */
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* Sombra más intensa */
+    }
+
+    h1 {
+        color: #ffffff;
+    }
+
+    #input-tarea {
+        background-color: #2c2c2c; /* Caja de texto gris oscuro */
+        color: #ffffff;
+        border: 1px solid #444;
+    }
+
+    #input-tarea::placeholder {
+        color: #aaa; /* Texto de relleno más claro */
+    }
+
+    li {
+        border-bottom: 1px solid #333; /* Línea separadora sutil */
+        color: #e0e0e0;
+    }
+
+    .btn-accion {
+        background-color: #333; /* Botones de mover/borrar oscuros */
+        color: #ddd;
+    }
+
+    .btn-accion:hover {
+        background-color: #444;
+    }
+    
+    .tarea-texto.completada {
+        color: #666; /* Texto de tarea terminada más apagado */
+    }
+}
