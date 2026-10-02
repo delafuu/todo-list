@@ -177,3 +177,45 @@ li[data-done="true"] .btn-marcar {
     background-color: #FEE2E2;
     color: var(--danger);
 }
+
+/* --- ADAPTACIÓN PARA MÓVILES --- */
+@media (max-width: 600px) {
+    body {
+        padding: 15px 10px; /* Reducimos el margen gris de fondo */
+    }
+    
+    .container {
+        padding: 20px 15px; /* Reducimos el margen blanco interior */
+        border-radius: 16px;
+    }
+
+    h1 {
+        font-size: 26px; /* Título más grande */
+    }
+
+    #input-tarea {
+        font-size: 18px; /* Letra más grande al escribir para evitar que iOS haga zoom automático */
+        padding: 14px 15px;
+    }
+
+    .btn-añadir {
+        padding: 14px 20px;
+        font-size: 16px; /* Botón de añadir más táctil */
+    }
+
+    li span {
+        font-size: 18px; /* Tareas más legibles */
+    }
+
+    .btn-marcar {
+        width: 32px; /* Círculo más grande para no fallar con el dedo */
+        height: 32px;
+        min-width: 32px;
+        font-size: 16px;
+    }
+
+    .btn-accion {
+        font-size: 16px; /* Flechas y cruz más grandes */
+        padding: 10px 14px;
+    }
+}
