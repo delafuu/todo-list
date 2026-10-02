@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Tareas con Fetch</title>
+    <!-- Aquí es donde se enlaza el CSS automáticamente -->
+    <link rel="stylesheet" href="/comun/css/estilo.css">
+</head>
+<body>
+    <!-- Añadimos este div contenedor para el diseño tipo tarjeta -->
+    <div class="container">
+        <h1>Mis Tareas</h1>
+        
+        <div class="controles">
+            <button onclick="cambiarVista('natural')">Orden natural</button>
+            <button onclick="cambiarVista('agrupado')">Agrupadas</button>
+        </div>
+
+        <form id="form-crear">
+            <input type="text" id="input-tarea" name="text" placeholder="¿Qué tienes que hacer hoy?" required>
+            <button type="submit" class="btn-añadir">Añadir</button>
+        </form>
+
+        <ul id="lista-tareas"></ul>
+    </div>
+
+    <script>
+        let estadoTareas = [];
+        let vistaActual = 'natural';
+
+        function cambiarVista(nuevaVista) {
+            vistaActual = nuevaVista;
+            pintarTareas(); 
+        }
+
+        function pintarTareas() {
+            const ul = document.getElementById('lista-tareas');
+            ul.innerHTML = '';
+            let tareasAMostrar = [...estadoTareas];
+            
+            if (vistaActual === 'agrupado') {
+                const pendientes = tareasAMostrar.filter(t => !t.done);
+                const hechas = tareasAMostrar.filter(t => t.done);
+                tareasAMostrar = pendientes.concat(hechas);
+            }
+            
+            tareasAMostrar.forEach(tarea => {
+                ul.appendChild(crearNodoTarea(tarea));
+            });
+        }
+
+        function crearNodoTarea(tarea) {
+            const li = document.createElement('li');
+            li.dataset.id = tarea.id;
+            li.dataset.done = tarea.done;
+            
+            // --- NUEVO: Botón Círculo ---
+            const btnMarcar = document.createElement('button');
+            btnMarcar.className = 'btn-marcar'; 
+            // Si está hecha ponemos un tick, si no, lo dejamos vacío
+            btnMarcar.textContent = tarea.done ? '✓' : ''; 
+            
+            btnMarcar.onclick = function() {
+                const formData = new URLSearchParams();
+                formData.append('id', tarea.id);
+                fetch('/api/toggle_task', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(tareaActualizada => {
+                    const index = estadoTareas.findIndex(t => t.id === tareaActualizada.id);
+                    estadoTareas[index] = tareaActualizada;
+                    pintarTareas();
+                });
+            };
+            // Lo insertamos el primero para que salga a la izquierda del todo
+            li.appendChild(btnMarcar);
+            
+            // Texto de la tarea
+            const span = document.createElement('span');
+            span.textContent = tarea.text;
+            li.appendChild(span);
+
+            // Botones secundarios
+            const originalIndex = estadoTareas.findIndex(t => t.id === tarea.id);
+
+            const btnSubir = document.createElement('button');
+            btnSubir.className = 'btn-accion';
+            btnSubir.innerHTML = '▲'; // Usamos una flecha en lugar de texto
+            btnSubir.onclick = () => moverTarea(tarea.id, originalIndex - 1);
+            li.appendChild(btnSubir);
+
+            const btnBajar = document.createElement('button');
+            btnBajar.className = 'btn-accion';
+            btnBajar.innerHTML = '▼'; // Usamos una flecha
+            btnBajar.onclick = () => moverTarea(tarea.id, originalIndex + 1);
+            li.appendChild(btnBajar);
+
+            const btnEliminar = document.createElement('button');
+            btnEliminar.className = 'btn-accion btn-eliminar';
+            btnEliminar.textContent = '✕'; // Usamos una X
+            btnEliminar.onclick = function() {
+                const formData = new URLSearchParams();
+                formData.append('id', tarea.id);
+                fetch('/api/delete_task', { method: 'POST', body: formData })
+                .then(r => {
+                    if (r.ok) {
+                        estadoTareas = estadoTareas.filter(t => t.id !== tarea.id);
+                        pintarTareas();
+                    }
+                });
+            };
+            li.appendChild(btnEliminar);
+            
+            return li;
+        }
+
+        function moverTarea(id, nuevaPosicion) {
+            const formData = new URLSearchParams();
+            formData.append('id', id);
+            formData.append('position', nuevaPosicion);
+            fetch('/api/move_task', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(listaReordenada => {
+                estadoTareas = listaReordenada;
+                pintarTareas();
+            });
+        }
+
+        function cargarTareas() {
+            fetch('/api/tasks')
+                .then(r => r.json())
+                .then(tareas => {
+                    estadoTareas = tareas;
+                    pintarTareas();
+                });
+        }
+        cargarTareas();
+
+        document.getElementById('form-crear').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const texto = document.getElementById('input-tarea').value;
+            const formData = new URLSearchParams();
+            formData.append('text', texto);
+            
+            fetch('/api/tasks', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(nuevaTarea => {
+                estadoTareas.push(nuevaTarea);
+                pintarTareas();
+                document.getElementById('input-tarea').value = ''; 
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+/* Paleta de colores y fuente moderna */
+:root {
+    --primary: #4F46E5;
+    --primary-hover: #4338CA;
+    --bg: #F3F4F6;
+    --card-bg: #FFFFFF;
+    --text-main: #1F2937;
+    --text-muted: #9CA3AF;
+    --border: #E5E7EB;
+    --danger: #EF4444;
+    --check-bg: #10B981;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    margin: 0;
+}
+
+/* Tarjeta principal contenedora */
+.container {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 550px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    padding: 30px;
+}
+
+h1 {
+    margin-top: 0;
+    font-size: 24px;
+    text-align: center;
+    color: var(--text-main);
+    margin-bottom: 20px;
+}
+
+/* Controles de vista */
+.controles {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.controles button {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    font-size: 13px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.controles button:hover {
+    background-color: var(--bg);
+    color: var(--text-main);
+}
+
+/* Formulario */
+#form-crear {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+#input-tarea {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#input-tarea:focus {
+    border-color: var(--primary);
+}
+
+.btn-añadir {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-añadir:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Lista de tareas */
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+li span {
+    flex: 1;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+/* --- ESTILOS DE TAREA COMPLETADA --- */
+li[data-done="true"] span {
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+/* El botón circular (Check) */
+.btn-marcar {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background-color: transparent;
+    color: transparent; /* Oculta el tick si no está marcado */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* Círculo relleno cuando la tarea está hecha */
+li[data-done="true"] .btn-marcar {
+    background-color: var(--check-bg);
+    border-color: var(--check-bg);
+    color: white; /* Muestra el tick */
+}
+
+/* Botones secundarios (Eliminar, Subir, Bajar) */
+.btn-accion {
+    background-color: transparent;
+    color: var(--text-muted);
+    border: none;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-accion:hover {
+    background-color: var(--bg);
+    color: var(--text-main);
+}
+
+.btn-eliminar:hover {
+    background-color: #FEE2E2;
+    color: var(--danger);
+}
