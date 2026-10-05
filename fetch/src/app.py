@@ -120,5 +120,22 @@ def move_task():
     conn.close()
     return jsonify(tareas), 200
 
+@app.route('/api/edit_task', methods=['POST'])
+def edit_task():
+    task_id = request.form.get('id')
+    new_text = request.form.get('text')
+    
+    if not new_text or new_text.strip() == '':
+        return jsonify({"error": "El texto no puede estar vacío"}), 400
+        
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+    cur.execute('UPDATE tareas SET text = %s WHERE id = %s', (new_text, task_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return jsonify({"id": task_id, "text": new_text}), 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=7070)

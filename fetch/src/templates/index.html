@@ -3,155 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Lista de Tareas con Fetch</title>
-    <!-- Aquí es donde se enlaza el CSS automáticamente -->
-    <link rel="stylesheet" href="/comun/css/estilo.css">
+    <title>Lista de Tareas</title>
+    
+    <!-- Enlaces para la PWA e iconos -->
+    <link rel="manifest" href="/comun/manifest.json">
     <link rel="apple-touch-icon" href="/comun/icono.png">
     <link rel="icon" type="image/png" href="/comun/icono.png">
+    
+    <!-- Enlace al CSS -->
+    <link rel="stylesheet" href="/comun/css/estilo.css">
 </head>
 <body>
-    <!-- Añadimos este div contenedor para el diseño tipo tarjeta -->
     <div class="container">
         <h1>Mis Tareas</h1>
         
-        <div class="controles">
-            <button onclick="cambiarVista('natural')">Orden natural</button>
-            <button onclick="cambiarVista('agrupado')">Agrupadas</button>
-        </div>
-
-        <form id="form-crear">
-            <input type="text" id="input-tarea" name="text" placeholder="¿Qué tienes que hacer hoy?" required>
+        <form id="formulario-tarea">
+            <input type="text" id="input-tarea" placeholder="¿Qué necesitas hacer hoy?" autocomplete="off" required>
             <button type="submit" class="btn-añadir">Añadir</button>
         </form>
-
+        
         <ul id="lista-tareas"></ul>
     </div>
 
     <script>
-        let estadoTareas = [];
-        let vistaActual = 'natural';
+        document.addEventListener('DOMContentLoaded', cargarTareas);
 
-        function cambiarVista(nuevaVista) {
-            vistaActual = nuevaVista;
-            pintarTareas(); 
-        }
-
-        function pintarTareas() {
-            const ul = document.getElementById('lista-tareas');
-            ul.innerHTML = '';
-            let tareasAMostrar = [...estadoTareas];
-            
-            if (vistaActual === 'agrupado') {
-                const pendientes = tareasAMostrar.filter(t => !t.done);
-                const hechas = tareasAMostrar.filter(t => t.done);
-                tareasAMostrar = pendientes.concat(hechas);
-            }
-            
-            tareasAMostrar.forEach(tarea => {
-                ul.appendChild(crearNodoTarea(tarea));
-            });
-        }
-
-        function crearNodoTarea(tarea) {
-            const li = document.createElement('li');
-            li.dataset.id = tarea.id;
-            li.dataset.done = tarea.done;
-            
-            // --- NUEVO: Botón Círculo ---
-            const btnMarcar = document.createElement('button');
-            btnMarcar.className = 'btn-marcar'; 
-            // Si está hecha ponemos un tick, si no, lo dejamos vacío
-            btnMarcar.textContent = tarea.done ? '✓' : ''; 
-            
-            btnMarcar.onclick = function() {
-                const formData = new URLSearchParams();
-                formData.append('id', tarea.id);
-                fetch('/api/toggle_task', { method: 'POST', body: formData })
-                .then(r => r.json())
-                .then(tareaActualizada => {
-                    const index = estadoTareas.findIndex(t => t.id === tareaActualizada.id);
-                    estadoTareas[index] = tareaActualizada;
-                    pintarTareas();
-                });
-            };
-            // Lo insertamos el primero para que salga a la izquierda del todo
-            li.appendChild(btnMarcar);
-            
-            // Texto de la tarea
-            const span = document.createElement('span');
-            span.textContent = tarea.text;
-            li.appendChild(span);
-
-            // Botones secundarios
-            const originalIndex = estadoTareas.findIndex(t => t.id === tarea.id);
-
-            const btnSubir = document.createElement('button');
-            btnSubir.className = 'btn-accion';
-            btnSubir.innerHTML = '▲'; // Usamos una flecha en lugar de texto
-            btnSubir.onclick = () => moverTarea(tarea.id, originalIndex - 1);
-            li.appendChild(btnSubir);
-
-            const btnBajar = document.createElement('button');
-            btnBajar.className = 'btn-accion';
-            btnBajar.innerHTML = '▼'; // Usamos una flecha
-            btnBajar.onclick = () => moverTarea(tarea.id, originalIndex + 1);
-            li.appendChild(btnBajar);
-
-            const btnEliminar = document.createElement('button');
-            btnEliminar.className = 'btn-accion btn-eliminar';
-            btnEliminar.textContent = '✕'; // Usamos una X
-            btnEliminar.onclick = function() {
-                const formData = new URLSearchParams();
-                formData.append('id', tarea.id);
-                fetch('/api/delete_task', { method: 'POST', body: formData })
-                .then(r => {
-                    if (r.ok) {
-                        estadoTareas = estadoTareas.filter(t => t.id !== tarea.id);
-                        pintarTareas();
-                    }
-                });
-            };
-            li.appendChild(btnEliminar);
-            
-            return li;
-        }
-
-        function moverTarea(id, nuevaPosicion) {
-            const formData = new URLSearchParams();
-            formData.append('id', id);
-            formData.append('position', nuevaPosicion);
-            fetch('/api/move_task', { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(listaReordenada => {
-                estadoTareas = listaReordenada;
-                pintarTareas();
-            });
-        }
-
+        // Cargar todas las tareas desde el servidor
         function cargarTareas() {
             fetch('/api/tasks')
-                .then(r => r.json())
+                .then(response => response.json())
                 .then(tareas => {
-                    estadoTareas = tareas;
-                    pintarTareas();
+                    const lista = document.getElementById('lista-tareas');
+                    lista.innerHTML = '';
+                    tareas.forEach(tarea => renderizarTarea(tarea));
                 });
         }
-        cargarTareas();
 
-        document.getElementById('form-crear').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            const texto = document.getElementById('input-tarea').value;
-            const formData = new URLSearchParams();
-            formData.append('text', texto);
+        // Dibujar una tarea en el HTML
+        function renderizarTarea(tarea) {
+            const lista = document.getElementById('lista-tareas');
+            const li = document.createElement('li');
+            li.dataset.id = tarea.id;
+
+            // Botón de completado
+            const btnMarcar = document.createElement('button');
+            btnMarcar.className = 'btn-marcar';
+            btnMarcar.textContent = tarea.done ? '✓' : '';
+            if (tarea.done) btnMarcar.classList.add('marcada');
+            btnMarcar.onclick = () => alternarTarea(tarea.id);
+
+            // Texto de la tarea (editable)
+            const span = document.createElement('span');
+            span.className = 'tarea-texto';
+            if (tarea.done) span.classList.add('completada');
+            span.textContent = tarea.text;
             
-            fetch('/api/tasks', { method: 'POST', body: formData })
-            .then(r => r.json())
-            .then(nuevaTarea => {
-                estadoTareas.push(nuevaTarea);
-                pintarTareas();
-                document.getElementById('input-tarea').value = ''; 
+            span.contentEditable = "true";
+            span.addEventListener('blur', () => guardarEdicion(tarea.id, span));
+            span.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    span.blur(); 
+                }
             });
+
+            // Botón subir
+            const btnSubir = document.createElement('button');
+            btnSubir.className = 'btn-accion';
+            btnSubir.textContent = '↑';
+            btnSubir.onclick = () => moverTarea(tarea.id, -1);
+
+            // Botón bajar
+            const btnBajar = document.createElement('button');
+            btnBajar.className = 'btn-accion';
+            btnBajar.textContent = '↓';
+            btnBajar.onclick = () => moverTarea(tarea.id, 1);
+
+            // Botón borrar
+            const btnBorrar = document.createElement('button');
+            btnBorrar.className = 'btn-accion btn-borrar';
+            btnBorrar.textContent = '✕';
+            btnBorrar.onclick = () => borrarTarea(tarea.id);
+
+            // Ensamblar el elemento
+            li.appendChild(btnMarcar);
+            li.appendChild(span);
+            li.appendChild(btnSubir);
+            li.appendChild(btnBajar);
+            li.appendChild(btnBorrar);
+            
+            lista.appendChild(li);
+        }
+
+        // Añadir nueva tarea
+        document.getElementById('formulario-tarea').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('input-tarea');
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            const formData = new FormData();
+            formData.append('text', texto);
+
+            fetch('/api/tasks', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(tarea => {
+                    renderizarTarea(tarea);
+                    input.value = '';
+                });
         });
+
+        // Alternar estado completado
+        function alternarTarea(id) {
+            const formData = new FormData();
+            formData.append('id', id);
+            fetch('/api/toggle_task', { method: 'POST', body: formData })
+                .then(() => cargarTareas());
+        }
+
+        // Borrar tarea
+        function borrarTarea(id) {
+            const formData = new FormData();
+            formData.append('id', id);
+            fetch('/api/delete_task', { method: 'POST', body: formData })
+                .then(() => {
+                    const li = document.querySelector(`li[data-id="${id}"]`);
+                    if (li) li.remove();
+                });
+        }
+
+        // Mover tarea
+        function moverTarea(id, direccion) {
+            const lista = Array.from(document.getElementById('lista-tareas').children);
+            const index = lista.findIndex(li => li.dataset.id === id);
+            if (index === -1) return;
+            
+            const nuevaPosicion = index + direccion;
+            if (nuevaPosicion < 0 || nuevaPosicion >= lista.length) return;
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('position', nuevaPosicion);
+            
+            fetch('/api/move_task', { method: 'POST', body: formData })
+                .then(() => cargarTareas());
+        }
+
+        // Guardar la edición de texto
+        function guardarEdicion(id, spanElement) {
+            const nuevoTexto = spanElement.textContent.trim();
+            
+            if (nuevoTexto === "") {
+                cargarTareas(); 
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('id', id);
+            formData.append('text', nuevoTexto);
+
+            fetch('/api/edit_task', {
+                method: 'POST',
+                body: formData
+            });
+        }
     </script>
 </body>
 </html>
