@@ -29,10 +29,15 @@
         document.addEventListener('DOMContentLoaded', cargarTareas);
 
         // Cargar todas las tareas desde el servidor
+        // Cargar todas las tareas desde el servidor
         function cargarTareas() {
             fetch('/api/tasks')
                 .then(response => response.json())
                 .then(tareas => {
+                    // Magia aquí: Ordenamos el array antes de dibujarlo
+                    // Si 'done' es false (pendiente), va arriba. Si es true (completada), va abajo.
+                    tareas.sort((a, b) => (a.done === b.done) ? 0 : a.done ? 1 : -1);
+
                     const lista = document.getElementById('lista-tareas');
                     lista.innerHTML = '';
                     tareas.forEach(tarea => renderizarTarea(tarea));
