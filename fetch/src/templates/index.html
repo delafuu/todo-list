@@ -101,6 +101,7 @@
         }
 
         // Añadir nueva tarea
+        // Añadir nueva tarea
         document.getElementById('formulario-tarea').addEventListener('submit', (e) => {
             e.preventDefault();
             const input = document.getElementById('input-tarea');
@@ -112,9 +113,9 @@
 
             fetch('/api/tasks', { method: 'POST', body: formData })
                 .then(res => res.json())
-                .then(tarea => {
-                    renderizarTarea(tarea);
+                .then(() => {
                     input.value = '';
+                    cargarTareas(); // <-- Recargamos y ordenamos la lista automáticamente
                 });
         });
 
